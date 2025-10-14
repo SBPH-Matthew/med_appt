@@ -46,6 +46,7 @@ export default function Login() {
         e.preventDefault();
         const validationErrors = validate();
         setErrors(validationErrors);
+        console.log("formData", formData)
 
         if (Object.keys(validationErrors).length > 0) return;
 
@@ -109,6 +110,8 @@ export default function Login() {
                 className="form-control"
                 placeholder="Enter your email"
                 aria-describedby="helpId"
+                value={formData.email}
+                onChange={handleChange}
               />
               {errors.email && <p className="error">{errors.email}</p>}
             </div>

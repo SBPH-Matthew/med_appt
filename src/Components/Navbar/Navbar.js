@@ -1,7 +1,27 @@
 import "./Navbar.css";
-import {Link} from 'react-router-dom'
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("auth-token");
+    const email = sessionStorage.getItem("email");
+
+    if (token && email) {
+      setIsLoggedIn(true);
+
+      // Derive username from email (remove domain parts)
+      const cleanName = email.split("@")[0].replace(/\./g, " ");
+      setUserName(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
+
   const handleClick = () => {
     const navLinks = document.querySelector(".nav__links");
     const navIcon = document.querySelector(".nav__icon i");
@@ -17,6 +37,13 @@ export default function Navbar() {
       navIcon.classList.remove("fa-times");
       navIcon.classList.add("fa-bars");
     }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("auth-token");
+    sessionStorage.removeItem("email");
+    setIsLoggedIn(false);
+    navigate("/Login");
   };
 
   return (
@@ -43,28 +70,44 @@ export default function Navbar() {
         </Link>
         <span>.</span>
       </div>
+
       <div className="nav__icon" onClick={handleClick}>
         <i className="fa fa-times fa fa-bars"></i>
       </div>
 
       <ul className="nav__links active">
         <li className="link">
-            <Link to="/">Home</Link>
+          <Link to="/">Home</Link>
         </li>
         <li className="link">
           <a href="#">Appointments</a>
         </li>
-        <li className="link">
-            <Link to="/Sign_Up">
-                <button className="btn1">Sign Up</button>
-            </Link>
-        </li>
-        <li className="link">
-            <Link to="/Login">
-            <button className="btn1">Login</button>
-            </Link>
 
-        </li>
+        {!isLoggedIn ? (
+          <>
+            <li className="link">
+              <Link to="/Sign_Up">
+                <button className="btn1">Sign Up</button>
+              </Link>
+            </li>
+            <li className="link">
+              <Link to="/Login">
+                <button className="btn1">Login</button>
+              </Link>
+            </li>
+          </>
+        ) : (
+          <>
+            <li className="link">
+              <span className="user-name">👋 {userName}</span>
+            </li>
+            <li className="link">
+              <button className="btn1 logout-btn" onClick={handleLogout}>
+                Logout
+              </button>
+            </li>
+          </>
+        )}
       </ul>
     </nav>
   );
