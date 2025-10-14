@@ -1,7 +1,87 @@
 import "./Login.css";
-import { Link } from "react-router-dom"; // use Link instead of <a> for SPA routing
+import  { useState, useEffect } from "react";
+import { Link, useNavigate  } from "react-router-dom"; // use Link instead of <a> for SPA routing
+import { API_URL } from "../../config";
+
 
 export default function Login() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (sessionStorage.getItem("auth-token")) {
+      navigate("/");
+    }
+  }, []);
+
+  const validate = () => {
+    const newErrors = {};
+
+
+
+
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    else if (!/^[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.email))
+      newErrors.email = "Enter a valid email address.";
+
+    if (!formData.password.trim()) newErrors.password = "Password is required.";
+    else if (formData.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters.";
+
+    return newErrors;
+  };
+
+    // Function to handle login form submission
+    const login = async (e) => {
+        e.preventDefault();
+        const validationErrors = validate();
+        setErrors(validationErrors);
+
+        if (Object.keys(validationErrors).length > 0) return;
+
+        // Send a POST request to the login API endpoint
+        const res = await fetch(`${API_URL}/api/auth/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: formData?.email,
+            password: formData?.password,
+          }),
+        });
+        // Parse the response JSON
+        const json = await res.json();
+        if (json.authtoken) {
+          // If authentication token is received, store it in session storage
+          sessionStorage.setItem('auth-token', json.authtoken);
+          sessionStorage.setItem('email', formData?.email);
+          // Redirect to home page and reload the window
+          navigate('/');
+          window.location.reload();
+        } else {
+          // Handle errors if authentication fails
+          if (json.errors) {
+            for (const error of json.errors) {
+              alert(error.msg);
+            }
+          } else {
+            alert(json.error);
+          }
+        }
+      };
+
+
   return (
     <div className="container">
       <div className="login-grid">
@@ -19,7 +99,7 @@ export default function Login() {
         <br />
 
         <div className="login-form">
-          <form>
+          <form onSubmit={login}>
             <div className="form-group">
               <label htmlFor="email">Email</label>
               <input
@@ -29,21 +109,30 @@ export default function Login() {
                 className="form-control"
                 placeholder="Enter your email"
                 aria-describedby="helpId"
-                required
               />
+              {errors.email && <p className="error">{errors.email}</p>}
             </div>
 
-            <div className="form-group">
+            <div className="form-group password-group">
               <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                name="password"
-                id="password"
-                className="form-control"
-                placeholder="Enter your password"
-                aria-describedby="helpId"
-                required
-              />
+              <div className="password-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  id="password"
+                  className="form-control"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                <i
+                  className={`fa ${
+                    showPassword ? "fa-eye-slash" : "fa-eye"
+                  } password-icon`}
+                  onClick={() => setShowPassword(!showPassword)}
+                ></i>
+              </div>
+              {errors.password && <p className="error">{errors.password}</p>}
             </div>
 
             <div className="btn-group">
@@ -56,6 +145,10 @@ export default function Login() {
               <button
                 type="reset"
                 className="btn btn-danger mb-2 waves-effect waves-light"
+                onClick={() => {
+                    setFormData({ email: "", password: "" });
+                    setErrors({});
+                }}
               >
                 Reset
               </button>
