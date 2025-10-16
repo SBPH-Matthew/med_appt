@@ -4,6 +4,8 @@ import Navbar from "./Components/Navbar/Navbar";
 import LandingPage from "./Components/Landing_Page/LandingPage";
 import Sign_Up from "./Components/Sign_Up/Sign_Up";
 import Login from "./Components/Login/Login";
+import Services from "./Components/Services/Services";
+import FindDoctorSearch from "./Components/FindDoctorSearch/FindDoctorSearch";
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="Sign_Up" element={<Sign_Up />} />
           <Route path="Login" element={<Login />} />
+          <Route path="Services" element={<Services />} />
+          <Route path="FindDoctorSearch" element={<FindDoctorSearch />} />
         </Routes>
       </BrowserRouter>
     </div>
