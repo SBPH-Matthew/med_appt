@@ -5,12 +5,12 @@ const services = [
   {
     title: "Instant Consultation",
     img: "https://images.pexels.com/photos/3825529/pexels-photo-3825529.jpeg?auto=compress&cs=tinysrgb&w=800",
-    link: "/FindDoctorSearch"
+    link: "/instant-consultation"
   },
   {
     title: "Book an Appointment",
     img: "https://images.pexels.com/photos/6823561/pexels-photo-6823561.jpeg?auto=compress&cs=tinysrgb&w=800",
-    link: "/BookAppointment"
+    link: "/booking-consultation"
   },
   {
     title: "Self Checkup",
