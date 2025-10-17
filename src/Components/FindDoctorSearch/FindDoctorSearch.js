@@ -1,60 +1,85 @@
-import { useState } from "react";
-import "./FindDoctorSearch.css";
+import React, { useEffect, useState } from 'react';
+import './FindDoctorSearch.css';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import FindDoctorSearchIC from '../FindDoctorSearchIC/FindDoctorSearchIC';
+import DoctorCardIC from '../DoctorCardIC/DoctorCardIC';
 
-const doctors = [
-  { name: "Dentist" },
-  { name: "Gynecologist / Obstetrician" },
-  { name: "General Physician" },
-  { name: "Dermatologist" },
-  { name: "Ear-nose-throat (ent) Specialist" },
-  { name: "Homeopath" },
-];
+const FindDoctorSearch = () => {
+    const [searchParams] = useSearchParams();
+    const [doctors, setDoctors] = useState([]);
+    const [filteredDoctors, setFilteredDoctors] = useState([]);
+    const [isSearched, setIsSearched] = useState(false);
+    
+    const getDoctorsDetails = () => {
+        fetch('https://api.npoint.io/9a5543d36f1460da2f63')
+        .then(res => res.json())
+        .then(data => {
+            if (searchParams.get('speciality')) {
+                // window.reload()
+                const filtered = data.filter(doctor => doctor.speciality.toLowerCase() === searchParams.get('speciality').toLowerCase());
 
-export default function FindDoctorSearch() {
-  const [isFocused, setIsFocused] = useState(false);
-  return (
-    <section className="doctor-search">
-      <h2 className="doctor-title">Find a doctor at your own ease</h2>
+                setFilteredDoctors(filtered);
+                
+                setIsSearched(true);
+                window.reload()
+            } else {
+                setFilteredDoctors([]);
+                setIsSearched(false);
+            }
+            setDoctors(data);
+        })
+        .catch(err => console.log(err));
+    }   
+    const handleSearch = (searchText) => {
 
-      <div className="doctor-image-container">
-        <img
-          src="https://images.pexels.com/photos/3825529/pexels-photo-3825529.jpeg?auto=compress&cs=tinysrgb&w=800"
-          alt="Doctor"
-          className="doctor-image"
-        />
-      </div>
+        if (searchText === '') {
+            setFilteredDoctors([]);
+            setIsSearched(false);
+            } else {
+                
+            const filtered = doctors.filter(
+                (doctor) =>
+                // 
+                doctor.speciality.toLowerCase().includes(searchText.toLowerCase())
+                
+            );
+                
+            setFilteredDoctors(filtered);
+            setIsSearched(true);
+            window.location.reload()
+        }
+    };
+    const navigate = useNavigate();
+    useEffect(() => {
+        getDoctorsDetails();
+        // const authtoken = sessionStorage.getItem("auth-token");
+        // if (!authtoken) {
+        //     navigate("/login");
+        // }
+    }, [searchParams])
 
-      <div className="search-container">
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search doctors by specialty"
-            className="search-input"
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-          />
-          <button className="search-btn">
-            <span role="img" aria-label="search">
-              🔍
-            </span>
-          </button>
+    return (
+        <center>
+            <div  className="searchpage-container">
+            <FindDoctorSearchIC onSearch={handleSearch} />
+            <div className="search-results-container">
+            {isSearched ? (
+                <center>
+                    <h2>{filteredDoctors.length} doctors are available {searchParams.get('location')}</h2>
+                    <h3>Book appointments with minimum wait-time & verified doctor details</h3>
+                    {filteredDoctors.length > 0 ? (
+                    filteredDoctors.map(doctor => <DoctorCardIC className="doctorcard" {...doctor} key={doctor.name} />)
+                    ) : (
+                    <p>No doctors found.</p>
+                    )}
+                </center>
+                ) : (
+                ''
+                )}
+            </div>
         </div>
-
-        {isFocused && (
-          <div className="doctor-list">
-            {doctors.map((doctor, index) => (
-              <div
-                key={index}
-                className={`doctor-item ${index === 0 ? "active" : ""}`}
-              >
-                <span className="doctor-icon">🔎</span>
-                <span className="doctor-name">{doctor.name}</span>
-                <span className="doctor-specialty">SPECIALITY</span>
-              </div>
-            ))}
-          </div>
-        )}
-        </div>
-    </section>
-  );
+        </center>
+    )
 }
+
+export default FindDoctorSearch
